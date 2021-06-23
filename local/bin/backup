@@ -39,7 +39,6 @@ fi
 
 # Rsync options
 OPTIONS="--archive \
-		 --dry-run \
 		 --inplace \
 		 --partial \
 		 --info=progress2 \
