@@ -1,0 +1,55 @@
+#!/bin/bash
+# Backup script installer
+
+PWD="$PWD/$(dirname ${0})"
+
+SRC=(
+	"$PWD/config/config"
+	"$PWD/config/include"
+	"$PWD/local/bin/backup"
+)
+
+DST=(
+	"$HOME/.config/backup/config"
+	"$HOME/.config/backup/include"
+	"$HOME/.local/bin/backup"
+)
+
+SYM=(
+	0
+	0
+	1
+)
+
+for (( i=0; i < ${#SRC[@]}; i++ )); do
+
+	SRC_I=${SRC[$i]}
+	DST_I=${DST[$i]}
+	SYM_I=${SYM[$i]}
+
+	# Check whether source exists
+	if [[ ! -e $SRC_I ]]; then
+		continue;
+	fi
+
+	# Create destination base directory if non-existent
+	mkdir -p $(dirname ${DST_I})
+
+	# Copy/symlink source if non-existent
+	if [[ ! -e $DST_I ]]; then
+	
+		# Copy or symlink
+		if [[ "$SYM_I" -eq 1 ]]; then
+			ln -s $SRC_I $DST_I;
+		else
+			cp $SRC_I $DST_I;
+		fi
+
+		# Print success message
+		echo "Installed '$SRC_I' into '$DST_I'";
+	else
+		# Print error message
+		echo "Destination '$DST_I' exists.";
+	fi
+
+done

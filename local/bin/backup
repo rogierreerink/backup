@@ -1,0 +1,53 @@
+#!/bin/bash
+D_CONFIG="/home/$USER/.config/backup"
+
+# Check if run as user
+if [[ $USER == "root" ]]; then
+	echo "Do not run as root."
+	exit
+fi
+
+# Check for rsync installation
+X_RSYNC="/usr/bin/rsync"
+if [[ ! -x $X_RSYNC ]]; then
+	echo "Rsync must be installed."
+	exit
+fi
+
+# Load the users configuration
+F_CONFIG="$D_CONFIG/config"
+if [[ -r $F_CONFIG ]]; then
+	source $F_CONFIG
+else
+	echo "No configuration file found."
+	exit
+fi
+
+# Check if destination is set
+if [[ -z $DESTINATION ]]; then
+	echo "Destination is not set."
+	exit
+fi
+
+# Check if rsync include file is present
+F_INCLUDE="$D_CONFIG/include"
+if [[ ! -r $F_INCLUDE ]]; then
+	echo "No include file found, backing up everything."
+else
+	INCLUDE="--include-from=$F_INCLUDE"
+fi
+
+# Rsync options
+OPTIONS="--archive \
+		 --compress \
+		 --compress-choice=zlib \
+		 --compress-level=0 \
+		 --inplace \
+		 --partial \
+		 --info=progress2 \
+		 --human-readable \
+		 --delete-after \
+		 --delete-excluded"
+
+# Run rsync
+$X_RSYNC $OPTIONS $INCLUDE "/home/$USER/" "$DESTINATION"
