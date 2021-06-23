@@ -39,9 +39,7 @@ fi
 
 # Rsync options
 OPTIONS="--archive \
-		 --compress \
-		 --compress-choice=zlib \
-		 --compress-level=0 \
+		 --dry-run \
 		 --inplace \
 		 --partial \
 		 --info=progress2 \
@@ -49,5 +47,22 @@ OPTIONS="--archive \
 		 --delete-after \
 		 --delete-excluded"
 
+# Compression settings
+COMPRESS_ENABLE=1
+COMPRESS_CHOICE="zlib"
+COMPRESS_LEVEL=0
+
+if [[ $COMPRESS_ENABLE -eq 1 ]]; then
+	COMPRESS="--compress \
+			  --compress-level=$COMPRESS_LEVEL"
+
+	# Check if compression choice setting is supported
+	if [[ ! "$($X_RSYNC --version | grep -c $COMPRESS_CHOICE)" -eq 0 ]]; then
+		COMPRESS="$COMPRESS --compress-choice=$COMPRESS_CHOICE"
+	else
+		echo "Compression choice is not supported, using default."
+	fi
+fi
+
 # Run rsync
-$X_RSYNC $OPTIONS $INCLUDE "/home/$USER/" "$DESTINATION"
+$X_RSYNC $OPTIONS $COMPRESS $INCLUDE "/home/$USER/" "$DESTINATION"
