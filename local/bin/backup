@@ -23,10 +23,34 @@ else
 	exit
 fi
 
-# Check if destination is set
+# Check destination config setting
 if [[ -z $DESTINATION ]]; then
 	echo "Destination is not set."
 	exit
+fi
+
+# Check compression config settings
+if [[ $COMPRESS_ENABLE -eq 1 ]]; then
+	COMPRESS="--compress"
+
+	# Check compression choice config setting
+	if [[ -z $COMPRESS_CHOICE ]]; then
+		echo "Compression choice is not set, using default."
+	else
+		# Check if compression choice setting is supported
+		if [[ ! "$($X_RSYNC --version | grep -c $COMPRESS_CHOICE)" -eq 0 ]]; then
+			COMPRESS="$COMPRESS --compress-choice=$COMPRESS_CHOICE"
+		else
+			echo "Compression choice is not supported, using default."
+		fi
+	fi
+
+	# Check compression level config setting
+	if [[ -n $COMPRESS_LEVEL ]]; then
+		COMPRESS="$COMPRESS --compress-level=$COMPRESS_LEVEL"
+	else
+		echo "Compression level is not set, using default."
+	fi
 fi
 
 # Check if rsync include file is present
@@ -46,21 +70,10 @@ OPTIONS="--archive \
 		 --delete-after \
 		 --delete-excluded"
 
-# Compression settings
-COMPRESS_ENABLE=1
-COMPRESS_CHOICE="zlib"
-COMPRESS_LEVEL=0
-
-if [[ $COMPRESS_ENABLE -eq 1 ]]; then
-	COMPRESS="--compress \
-			  --compress-level=$COMPRESS_LEVEL"
-
-	# Check if compression choice setting is supported
-	if [[ ! "$($X_RSYNC --version | grep -c $COMPRESS_CHOICE)" -eq 0 ]]; then
-		COMPRESS="$COMPRESS --compress-choice=$COMPRESS_CHOICE"
-	else
-		echo "Compression choice is not supported, using default."
-	fi
+# Check dry-run config setting
+if [[ $DRY_RUN -eq 1 ]]; then
+	echo "Running in dry-run mode."
+	OPTIONS="$OPTIONS --dry-run"
 fi
 
 # Run rsync
